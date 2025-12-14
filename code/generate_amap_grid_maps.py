@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-生成带高德地图背景的网格地图（成都和海口）
-使用英文版高德地图瓦片服务
+Generate grid maps with AMap background (Chengdu and Haikou)
+Using English version of AMap tile service
 """
 
 import pandas as pd
@@ -15,16 +15,16 @@ import glob
 import warnings
 warnings.filterwarnings('ignore')
 
-# 设置matplotlib参数
+# Set matplotlib parameters
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman', 'Times', 'Liberation Serif']
 plt.rcParams['axes.unicode_minus'] = False
 
 class AMapGridGenerator:
-    """生成带高德地图背景的网格地图"""
+    """Generate grid maps with AMap background"""
     
     def __init__(self):
-        # 成都核心城区边界
+        # Chengdu core urban area boundaries
         self.chengdu_bounds = {
             'lon_min': 103.994821,
             'lon_max': 104.134852,
@@ -32,7 +32,7 @@ class AMapGridGenerator:
             'lat_max': 30.746338
         }
         
-        # 海口核心城区边界
+        # Haikou core urban area boundaries
         self.haikou_bounds = {
             'lon_min': 110.277127,
             'lon_max': 110.376339,
@@ -40,28 +40,28 @@ class AMapGridGenerator:
             'lat_max': 20.060804
         }
         
-        # 网格参数
+        # Grid parameters
         self.grid_rows = 20
         self.grid_cols = 20
         
-        # 高德地图瓦片服务URL
-        # style=7 矢量地图, style=8 路网地图, style=6 卫星图
+        # AMap tile service URLs
+        # style=7 vector map, style=8 road map, style=6 satellite
         self.amap_urls = [
-            # 高德矢量地图（标准版）
+            # AMap vector map (standard version)
             'http://webrd01.is.autonavi.com/appmaptile?size=1&scale=1&style=7&x={x}&y={y}&z={z}',
             'http://webrd02.is.autonavi.com/appmaptile?size=1&scale=1&style=7&x={x}&y={y}&z={z}',
             'http://webrd03.is.autonavi.com/appmaptile?size=1&scale=1&style=7&x={x}&y={y}&z={z}',
             'http://webrd04.is.autonavi.com/appmaptile?size=1&scale=1&style=7&x={x}&y={y}&z={z}',
-            # 备用: 高德路网地图
+            # Backup: AMap road map
             'http://webrd01.is.autonavi.com/appmaptile?size=1&scale=1&style=8&x={x}&y={y}&z={z}',
-            # 备用: CartoDB 淡色地图
+            # Backup: CartoDB light map
             'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-            # 备用: OpenStreetMap
+            # Backup: OpenStreetMap
             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         ]
     
     def load_chengdu_data(self, sample_ratio=0.1):
-        """加载成都数据"""
+        """Load Chengdu data"""
         data_dir = '/root/lanyun-tmp/data_code/raw_data/2016年11月成都网约车滴滴订单数据'
         csv_files = sorted(glob.glob(os.path.join(data_dir, '*.csv')))
         if not csv_files:
@@ -90,7 +90,7 @@ class AMapGridGenerator:
         return core_df
     
     def load_haikou_data(self, sample_ratio=0.1):
-        """加载海口数据"""
+        """Load Haikou data"""
         data_dir = '/root/lanyun-tmp/data_code/raw_data/海口打车数据'
         csv_files = sorted(glob.glob(os.path.join(data_dir, '*.csv')))
         if not csv_files:
@@ -114,59 +114,59 @@ class AMapGridGenerator:
         return core_df
     
     def add_amap_basemap(self, ax, bounds):
-        """添加高德地图底图"""
-        # 设置坐标轴范围（必须在添加底图前设置）
+        """Add AMap basemap"""
+        # Set axis limits (must be set before adding basemap)
         ax.set_xlim(bounds['lon_min'], bounds['lon_max'])
         ax.set_ylim(bounds['lat_min'], bounds['lat_max'])
         
         basemap_added = False
         
-        print("  尝试加载高德地图...")
+        print("  Attempting to load AMap...")
         
-        # 尝试不同的地图源
+        # Try different map sources
         map_names = [
-            "高德矢量地图 1",
-            "高德矢量地图 2", 
-            "高德矢量地图 3",
-            "高德矢量地图 4",
-            "高德路网地图",
-            "CartoDB 淡色地图",
+            "AMap Vector 1",
+            "AMap Vector 2", 
+            "AMap Vector 3",
+            "AMap Vector 4",
+            "AMap Road Map",
+            "CartoDB Light Map",
             "OpenStreetMap"
         ]
         
         for i, url in enumerate(self.amap_urls):
             try:
                 if i < len(map_names):
-                    print(f"    尝试 {map_names[i]}...")
+                    print(f"    Trying {map_names[i]}...")
                 
-                # 使用contextily添加自定义瓦片地图
+                # Use contextily to add custom tile map
                 ctx.add_basemap(
                     ax,
                     crs='EPSG:4326',
                     source=url,
-                    zoom=12,  # 适中的zoom级别
+                    zoom=12,  # Moderate zoom level
                     alpha=0.9,
                     attribution=""
                 )
                 
-                print(f"    ✓ 成功加载 {map_names[i] if i < len(map_names) else '地图'}")
+                print(f"    ✓ Successfully loaded {map_names[i] if i < len(map_names) else 'map'}")
                 basemap_added = True
                 break
                 
             except Exception as e:
                 continue
         
-        # 如果所有在线地图都失败，使用fallback背景
+        # If all online maps fail, use fallback background
         if not basemap_added:
-            print("  警告: 所有地图源均失败，使用默认背景")
-            # 创建简单的灰色背景
+            print("  Warning: All map sources failed, using default background")
+            # Create simple gray background
             ax.set_facecolor('#f5f5f5')
             
-            # 添加简单的网格作为背景
+            # Add simple grid as background
             lon_range = bounds['lon_max'] - bounds['lon_min']
             lat_range = bounds['lat_max'] - bounds['lat_min']
             
-            # 背景细网格
+            # Background fine grid
             for i in range(50):
                 y = bounds['lat_min'] + i * lat_range / 50
                 ax.plot([bounds['lon_min'], bounds['lon_max']], [y, y], 
@@ -179,39 +179,39 @@ class AMapGridGenerator:
         return basemap_added
     
     def generate_city_map(self, city_name, bounds, data, output_path, dpi=300):
-        """生成单个城市的地图"""
-        print(f"\n生成{city_name}地图...")
+        """Generate map for a single city"""
+        print(f"\nGenerating {city_name} map...")
         
-        # 创建图形
+        # Create figure
         fig, ax = plt.subplots(1, 1, figsize=(12, 12))
         
-        # 添加高德地图背景
+        # Add AMap background
         self.add_amap_basemap(ax, bounds)
         
-        # 绘制数据点（红色）
+        # Plot data points (red)
         if len(data) > 0:
-            if city_name == '成都':
+            if city_name == 'Chengdu':
                 ax.scatter(data['lng'], data['lat'],
                           s=8, alpha=0.7, c='#DC143C', edgecolors='white', 
                           linewidth=0.3, rasterized=True, zorder=5)
-            else:  # 海口
+            else:  # Haikou
                 ax.scatter(data['starting_wgs84_lng'], data['starting_wgs84_lat'],
                           s=8, alpha=0.7, c='#DC143C', edgecolors='white', 
                           linewidth=0.3, rasterized=True, zorder=5)
-            print(f"  ✓ 已绘制 {len(data):,} 个数据点")
+            print(f"  ✓ Plotted {len(data):,} data points")
         
-        # 创建网格边界
+        # Create grid boundaries
         lon_edges = np.linspace(bounds['lon_min'], bounds['lon_max'], self.grid_cols + 1)
         lat_edges = np.linspace(bounds['lat_min'], bounds['lat_max'], self.grid_rows + 1)
         
-        # 绘制网格线（蓝色，加粗）
+        # Draw grid lines (blue, bold)
         for lon in lon_edges:
             ax.axvline(lon, color='#0066CC', linewidth=2, alpha=0.9, zorder=6)
         for lat in lat_edges:
             ax.axhline(lat, color='#0066CC', linewidth=2, alpha=0.9, zorder=6)
-        print(f"  ✓ 已绘制 {self.grid_rows}×{self.grid_cols} 网格")
+        print(f"  ✓ Drawn {self.grid_rows}×{self.grid_cols} grid")
         
-        # 移除标签和边框
+        # Remove labels and borders
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_xlabel('')
@@ -221,64 +221,64 @@ class AMapGridGenerator:
         for spine in ax.spines.values():
             spine.set_visible(False)
         
-        # 保存
+        # Save
         plt.tight_layout()
         plt.savefig(output_path, dpi=dpi, bbox_inches='tight', 
                    pad_inches=0, facecolor='white', edgecolor='none')
-        print(f"  ✓ 已保存: {output_path}")
+        print(f"  ✓ Saved: {output_path}")
         
-        # 高清版本
+        # High definition version
         output_path_hd = output_path.replace('.png', '_HD.png')
         plt.savefig(output_path_hd, dpi=600, bbox_inches='tight',
                    pad_inches=0, facecolor='white', edgecolor='none')
-        print(f"  ✓ 高清版本已保存: {output_path_hd}")
+        print(f"  ✓ HD version saved: {output_path_hd}")
         
         plt.close()
     
     def generate_all_maps(self):
-        """生成所有地图"""
+        """Generate all maps"""
         print("=" * 80)
-        print("高德地图网格生成器")
+        print("AMap Grid Generator")
         print("=" * 80)
         
-        # 加载数据
-        print("\n加载数据...")
+        # Load data
+        print("\nLoading data...")
         chengdu_data = self.load_chengdu_data()
         haikou_data = self.load_haikou_data()
         
-        print(f"成都数据: {len(chengdu_data):,} 条")
-        print(f"海口数据: {len(haikou_data):,} 条")
+        print(f"Chengdu data: {len(chengdu_data):,} records")
+        print(f"Haikou data: {len(haikou_data):,} records")
         
-        # 生成成都地图
+        # Generate Chengdu map
         self.generate_city_map(
-            '成都',
+            'Chengdu',
             self.chengdu_bounds,
             chengdu_data,
             '/root/lanyun-tmp/data_code/chengdu_grid_map.png'
         )
         
-        # 生成海口地图
+        # Generate Haikou map
         self.generate_city_map(
-            '海口',
+            'Haikou',
             self.haikou_bounds,
             haikou_data,
             '/root/lanyun-tmp/data_code/haikou_grid_map.png'
         )
         
         print("\n" + "=" * 80)
-        print("✅ 所有地图生成完成！")
+        print("✅ All maps generated successfully!")
         print("=" * 80)
         
-        print("\n使用说明:")
-        print("  • 图片无标题、无坐标轴标签，适合作为论文配图")
-        print("  • 网格线为蓝色（#0066CC），数据点为红色（#DC143C）")
-        print("  • 使用高德地图作为背景，显示真实的地理信息")
-        print("  • 范围基于数据集的核心区域（90分位数）")
-        print("  • 适合用于论文、演示文稿等学术用途")
+        print("\nUsage instructions:")
+        print("  • Images have no title, no axis labels, suitable for paper figures")
+        print("  • Grid lines are blue (#0066CC), data points are red (#DC143C)")
+        print("  • Uses AMap as background, showing real geographic information")
+        print("  • Boundaries based on dataset core area (90th percentile)")
+        print("  • Suitable for academic use such as papers, presentations")
 
 
 def main():
-    """主函数"""
+    """Main function"""
     generator = AMapGridGenerator()
     generator.generate_all_maps()
 
