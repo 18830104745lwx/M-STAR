@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-生成带有实际地图背景的网格划分图（海口版）
-用于模型图绘制素材
+Generate grid partition map with real map background (Haikou version)
+For model diagram drawing material
 """
 
 import pandas as pd
@@ -15,22 +15,22 @@ import os
 import glob
 from PIL import Image
 
-# 设置matplotlib参数
+# Set matplotlib parameters
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman', 'Times', 'Liberation Serif']
 plt.rcParams['axes.unicode_minus'] = False
 
 class HaikouGridMapGenerator:
-    """生成海口网格划分地图"""
+    """Generate Haikou grid partition map"""
     
     def __init__(self, data_dir, output_path='haikou_grid_map.png', basemap_path='haikou.png'):
         self.data_dir = data_dir
         self.output_path = output_path
         self.basemap_path = basemap_path
         
-        # 海口核心城区边界（从处理后的数据中提取）
-        # 经度: [110.277127, 110.376339], 纬度: [19.978258, 20.060804]
-        # 覆盖面积: 10.42 km × 9.16 km
+        # Haikou core urban area boundaries (extracted from processed data)
+        # Longitude: [110.277127, 110.376339], Latitude: [19.978258, 20.060804]
+        # Coverage area: 10.42 km × 9.16 km
         self.core_bounds = {
             'lon_min': 110.277127,
             'lon_max': 110.376339,
@@ -38,34 +38,34 @@ class HaikouGridMapGenerator:
             'lat_max': 20.060804
         }
         
-        # 网格参数
+        # Grid parameters
         self.grid_rows = 20
         self.grid_cols = 20
     
     def load_sample_data(self, sample_ratio=0.1):
-        """加载少量样本数据用于可视化"""
-        print("正在加载样本数据...")
+        """Load small sample data for visualization"""
+        print("Loading sample data...")
         
         csv_files = sorted(glob.glob(os.path.join(self.data_dir, '*.csv')))
         if not csv_files:
-            raise FileNotFoundError(f"在 {self.data_dir} 中未找到CSV文件")
+            raise FileNotFoundError(f"No CSV files found in {self.data_dir}")
         
-        # 只读取第一个文件以加快速度
+        # Only read the first file for speed
         df = pd.read_csv(csv_files[0], dtype={'order_id': str})
         
-        # 海口数据的列名
+        # Haikou data column names
         required_cols = ['starting_wgs84_lng', 'starting_wgs84_lat']
         if not all(col in df.columns for col in required_cols):
-            raise ValueError(f"数据文件缺少必要列: {required_cols}")
+            raise ValueError(f"Data file missing required columns: {required_cols}")
         
-        # 数据清洗
+        # Data cleaning
         df = df.dropna(subset=required_cols)
         
-        # 采样
+        # Sampling
         if sample_ratio < 1.0:
             df = df.sample(frac=sample_ratio, random_state=42)
         
-        # 过滤到核心区域
+        # Filter to core area
         core_df = df[
             (df['starting_wgs84_lng'] >= self.core_bounds['lon_min']) &
             (df['starting_wgs84_lng'] <= self.core_bounds['lon_max']) &
@@ -73,12 +73,12 @@ class HaikouGridMapGenerator:
             (df['starting_wgs84_lat'] <= self.core_bounds['lat_max'])
         ]
         
-        print(f"样本数据: {len(core_df):,} 条记录")
+        print(f"Sample data: {len(core_df):,} records")
         return core_df
     
     def create_grid_edges(self):
-        """创建网格边界"""
-        # 计算网格边界
+        """Create grid boundaries"""
+        # Calculate grid boundaries
         lon_edges = np.linspace(self.core_bounds['lon_min'], 
                                self.core_bounds['lon_max'], 
                                self.grid_cols + 1)
@@ -89,32 +89,32 @@ class HaikouGridMapGenerator:
         return lon_edges, lat_edges
     
     def generate_with_fallback(self, dpi=300, try_online=True):
-        """生成网格图，支持在线地图和本地地图回退"""
+        """Generate grid map with online map and local map fallback"""
         print("=" * 80)
-        print("海口网格划分地图生成器")
+        print("Haikou Grid Partition Map Generator")
         print("=" * 80)
         
-        # 加载数据
-        print("\n步骤1: 加载样本数据")
+        # Load data
+        print("\nStep 1: Loading sample data")
         sample_data = self.load_sample_data()
         
-        print("\n步骤2: 创建网格")
+        print("\nStep 2: Creating grid")
         lon_edges, lat_edges = self.create_grid_edges()
-        print(f"网格配置: {self.grid_rows}×{self.grid_cols} = {self.grid_rows*self.grid_cols}个网格")
+        print(f"Grid configuration: {self.grid_rows}×{self.grid_cols} = {self.grid_rows*self.grid_cols} grids")
         
-        print("\n步骤3: 生成地图")
-        # 创建图形
+        print("\nStep 3: Generating map")
+        # Create figure
         fig, ax = plt.subplots(1, 1, figsize=(12, 12))
         
-        # 设置坐标轴范围（必须在添加底图前设置）
+        # Set axis limits (must be set before adding basemap)
         ax.set_xlim(self.core_bounds['lon_min'], self.core_bounds['lon_max'])
         ax.set_ylim(self.core_bounds['lat_min'], self.core_bounds['lat_max'])
         
         basemap_added = False
         
-        # 首先尝试在线地图
+        # First try online maps
         if try_online:
-            print("尝试加载在线地图...")
+            print("Attempting to load online map...")
             providers = [
                 (ctx.providers.OpenStreetMap.Mapnik, "OpenStreetMap"),
                 (ctx.providers.CartoDB.Positron, "CartoDB.Positron"),
@@ -123,34 +123,34 @@ class HaikouGridMapGenerator:
             
             for provider, provider_name in providers:
                 try:
-                    print(f"  尝试 {provider_name}...")
-                    # 使用默认zoom，让contextily自动计算
+                    print(f"  Trying {provider_name}...")
+                    # Use default zoom, let contextily calculate automatically
                     ctx.add_basemap(ax, crs='EPSG:4326', source=provider, alpha=0.8)
-                    print(f"  ✓ 成功加载 {provider_name}")
+                    print(f"  ✓ Successfully loaded {provider_name}")
                     basemap_added = True
                     break
                 except Exception as e:
-                    print(f"  ✗ {provider_name} 失败: {str(e)[:100]}")
+                    print(f"  ✗ {provider_name} failed: {str(e)[:100]}")
                     continue
         
-        # 如果在线地图失败，尝试本地地图
+        # If online maps fail, try local map
         if not basemap_added and os.path.exists(self.basemap_path):
             try:
-                print("\n尝试加载本地地图...")
+                print("\nAttempting to load local map...")
                 basemap_img = Image.open(self.basemap_path)
                 ax.imshow(basemap_img, extent=[
                     self.core_bounds['lon_min'], self.core_bounds['lon_max'],
                     self.core_bounds['lat_min'], self.core_bounds['lat_max']
                 ], alpha=0.9, aspect='auto', zorder=1)
-                print(f"✓ 已加载本地地图: {self.basemap_path}")
+                print(f"✓ Loaded local map: {self.basemap_path}")
                 basemap_added = True
             except Exception as e:
-                print(f"✗ 本地地图加载失败: {e}")
+                print(f"✗ Local map loading failed: {e}")
         
-        # 如果都失败，使用渐变背景
+        # If all fail, use gradient background
         if not basemap_added:
-            print("\n使用默认背景")
-            # 创建渐变背景
+            print("\nUsing default background")
+            # Create gradient background
             gradient = np.linspace(0, 1, 256).reshape(1, -1)
             gradient = np.vstack((gradient, gradient))
             ax.imshow(gradient, extent=[self.core_bounds['lon_min'], self.core_bounds['lon_max'],
@@ -158,91 +158,90 @@ class HaikouGridMapGenerator:
                       aspect='auto', cmap='Blues_r', alpha=0.1, zorder=0)
             ax.set_facecolor('#f8fbff')
         
-        # 绘制数据点（红色）
+        # Plot data points (red)
         if len(sample_data) > 0:
             ax.scatter(sample_data['starting_wgs84_lng'], sample_data['starting_wgs84_lat'],
                       s=8, alpha=0.7, c='#DC143C', edgecolors='white', 
                       linewidth=0.3, rasterized=True, zorder=5, label='Taxi Trips')
-            print(f"✓ 已绘制 {len(sample_data):,} 个数据点")
+            print(f"✓ Plotted {len(sample_data):,} data points")
         
-        # 绘制网格线（蓝色）
+        # Draw grid lines (blue)
         for lon in lon_edges:
             ax.axvline(lon, color='#0066CC', linewidth=1.5, alpha=0.9, zorder=6)
         for lat in lat_edges:
             ax.axhline(lat, color='#0066CC', linewidth=1.5, alpha=0.9, zorder=6)
-        print(f"✓ 已绘制 {self.grid_rows}×{self.grid_cols} 网格")
+        print(f"✓ Drawn {self.grid_rows}×{self.grid_cols} grid")
         
-        # 移除标签
+        # Remove labels
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_title('')
         
-        # 移除边框
+        # Remove borders
         for spine in ax.spines.values():
             spine.set_visible(False)
         
-        # 保存标准版本
+        # Save standard version
         plt.tight_layout()
         plt.savefig(self.output_path, dpi=dpi, bbox_inches='tight', 
                    pad_inches=0, facecolor='white', edgecolor='none')
-        print(f"\n✓ 标准版本已保存: {self.output_path}")
+        print(f"\n✓ Standard version saved: {self.output_path}")
         
-        # 高清版本
+        # High definition version
         output_path_hd = self.output_path.replace('.png', '_HD.png')
         plt.savefig(output_path_hd, dpi=600, bbox_inches='tight',
                    pad_inches=0, facecolor='white', edgecolor='none')
-        print(f"✓ 高清版本已保存: {output_path_hd}")
+        print(f"✓ HD version saved: {output_path_hd}")
         
         plt.close()
         
-        # 打印统计信息
+        # Print statistics
         print("\n" + "=" * 80)
-        print("📊 地图信息")
+        print("📊 Map Information")
         print("=" * 80)
-        print(f"区域: 海口市核心城区")
+        print(f"Region: Haikou core urban area")
         lon_span = (self.core_bounds['lon_max'] - self.core_bounds['lon_min']) * 105.0
         lat_span = (self.core_bounds['lat_max'] - self.core_bounds['lat_min']) * 111.0
-        print(f"覆盖范围: {lon_span:.2f} km × {lat_span:.2f} km")
-        print(f"网格配置: {self.grid_rows}×{self.grid_cols} = {self.grid_rows*self.grid_cols}个网格")
-        print(f"每个网格: {lon_span/self.grid_cols:.2f} km × {lat_span/self.grid_rows:.2f} km")
-        print(f"数据点数: {len(sample_data):,} 条（采样）")
+        print(f"Coverage: {lon_span:.2f} km × {lat_span:.2f} km")
+        print(f"Grid configuration: {self.grid_rows}×{self.grid_cols} = {self.grid_rows*self.grid_cols} grids")
+        print(f"Each grid: {lon_span/self.grid_cols:.2f} km × {lat_span/self.grid_rows:.2f} km")
+        print(f"Data points: {len(sample_data):,} records (sampled)")
         print("=" * 80)
         
         return self.output_path
 
 
 def main():
-    """主函数"""
-    # 设置路径
+    """Main function"""
+    # Set paths
     data_dir = '/root/lanyun-tmp/data_code/raw_data/海口打车数据'
     output_path = '/root/lanyun-tmp/data_code/haikou_grid_map.png'
     basemap_path = '/root/lanyun-tmp/data_code/haikou.png'
     
-    # 创建生成器
+    # Create generator
     generator = HaikouGridMapGenerator(data_dir, output_path, basemap_path)
     
     try:
-        # 生成网格地图 - 尝试在线地图
-        generator.generate_with_fallback(dpi=300, try_online=True)  # 使用在线地图
+        # Generate grid map - try online maps
+        generator.generate_with_fallback(dpi=300, try_online=True)  # Use online maps
         
-        print("\n✅ 生成完成！")
-        print("\n输出文件:")
-        print(f"  📄 标准版本 (300 DPI): {output_path}")
-        print(f"  📄 高清版本 (600 DPI): {output_path.replace('.png', '_HD.png')}")
-        print("\n使用说明:")
-        print("  • 图片无标题、无坐标轴标签，适合作为论文配图")
-        print("  • 网格线为蓝色（#0066CC），数据点为红色（#DC143C）")
-        print("  • 使用在线地图 (CartoDB Positron) 作为背景")
-        print("  • 适合用于论文、演示文稿等学术用途")
+        print("\n✅ Generation completed!")
+        print("\nOutput files:")
+        print(f"  📄 Standard version (300 DPI): {output_path}")
+        print(f"  📄 HD version (600 DPI): {output_path.replace('.png', '_HD.png')}")
+        print("\nUsage instructions:")
+        print("  • Images have no title, no axis labels, suitable for paper figures")
+        print("  • Grid lines are blue (#0066CC), data points are red (#DC143C)")
+        print("  • Uses online maps (CartoDB Positron) as background")
+        print("  • Suitable for academic use such as papers, presentations")
         
     except Exception as e:
-        print(f"\n❌ 生成失败: {e}")
+        print(f"\n Generation failed: {e}")
         import traceback
         traceback.print_exc()
 
 
 if __name__ == '__main__':
     main()
-
