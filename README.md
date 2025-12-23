@@ -16,9 +16,9 @@ M-STAR employs a unified encoder--decoder pipeline that transforms raw grid-leve
 ## Structure
 
 - **raw_data/**  
-  - `ChengduDiDi20x20.geo/`
-  - `ChengduDiDi20x20.grid/`
-  - `config.json/`
+  - `ChengduDiDi20x20.geo/`: contains geographical features (e.g., roads, zones) for Chengdu DiDi spatial analysis used in this study 
+  - `ChengduDiDi20x20.grid/`： contains raster file representing a 20×20 grid of numerical values (e.g., traffic density) across Chengdu for DiDi trip data used in this study
+  - `config.json/`: a configuration file in JSON format that stores settings,
 
 - **libcity/**  
   - **`config/`**
