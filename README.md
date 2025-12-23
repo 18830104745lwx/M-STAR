@@ -15,18 +15,28 @@ M-STAR employs a unified encoder--decoder pipeline that transforms raw grid-leve
 
 ## Structure
 
-- **raw_data/**  # 主目录
-  - `ChengduDiDi20x20.geo/`：
-  - `ChengduDiDi20x20.grid/`：
-  - `config.json/`：
+- **raw_data/**  
+  - `ChengduDiDi20x20.geo/`
+  - `ChengduDiDi20x20.grid/`
+  - `config.json/`
 
-- **libcity/**  # 主目录
-  - `config/`：
-  - `data/`：
-  - `evalator/`：
-  - `model/`：
-  - `pipeline/`：
-  - `utils/`：
+- **libcity/**  
+  - **`config/`**
+    - `data/`
+    - `evaluator/`
+    - `executor/`
+    - `model/traffic_state_pred/`
+  - **`data/`**
+    - `dataset/`
+    - `__init__.py/`
+    - `batch.py/`
+    - `list_dataset.py/`
+    - `utils.py/`
+  - **`evalator/`**
+  - **`model/`**
+  - **`pipeline/`**
+  - **`utils/`**
+
 
 
 ## Results
