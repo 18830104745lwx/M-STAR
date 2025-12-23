@@ -1,0 +1,18 @@
+{
+    "traffic_state_pred": {
+        "allowed_model": [
+            "TrafficFormer"
+        ],
+        "allowed_dataset": [
+            "PeMS04", "PeMS07", "PeMS08",
+            "NYCTaxi", "T-Drive", "CHIBike",
+            "SHANGHAI_SHIP_FLOW_2022_08", "ZHOUSHAN_SHIP_FLOW_2022_12",
+            "ChengduDiDi20x20", "ShanghaiTaxi20x20"
+        ],
+        "TrafficFormer": {
+            "dataset_class": "TrafficFormerGridDataset",
+            "executor": "TrafficFormerExecutor",
+            "evaluator": "TrafficStateGridEvaluator"
+        }
+    }
+}
