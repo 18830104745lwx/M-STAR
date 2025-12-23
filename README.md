@@ -39,7 +39,7 @@ Prediction decoder finally maps the fused representation to the target space usi
 ## Results
 
 ### Prediction Visualization
-![model](./figures/chengdu_node_314_day1_24h_continuous.png)
+![model](./figure/chengdu_node_314_day1_24h_continuous.png)
 
 ## Conclusion
 M-STAR integrates a four-branch heterogeneous attention module---covering temporal, geographic, semantic, and adaptive data-driven dependencies---with a multi-scale temporal refiner that combines multi-dilated convolutions, lightweight temporal attention, and cross-node temporal interactions. Cross-layer skip connections aggregate multi-level encoder representations, and grouped-query attention reduces key--value redundancy while preserving modeling capacity. Extensive experiments on two large-scale taxi origin--destination datasets from Chengdu and Haikou demonstrate that M-STAR consistently outperforms representative statistical baselines (ARIMA, VAR), generic sequence models (LSTM, GRU), grid-based CNNs (ST-ResNet), spatiotemporal GNNs (STGCN, ASTGCN, Graph WaveNet, MTGNN, GMAN, MoGERNN), and recent Transformer/MLP forecasters (PDFormer, STAEformer, TimeMixer) across MAE, RMSE, and MAPE, with especially pronounced gains on the sparser Haikou dataset.
